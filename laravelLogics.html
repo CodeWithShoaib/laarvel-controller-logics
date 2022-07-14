@@ -8,3 +8,412 @@ return redirect("/");
 }
 
     }
+
+
+
+
+
+
+
+
+
+api related curd operation
+
+
+        class dummyapi extends Controller
+        {
+        function getapi(){
+        return [
+        "name"=>"shoaib",
+        "phone"=>"03216905568",
+        "email"=>"shoaib@gmail.com"
+
+        ];
+        }
+
+        function product($id=null){
+        return $id? product::find($id):product::all();
+
+        }
+        function datainserted(Request $request){
+        $product=new product;
+        $product->category=$request->category;
+        $product->name=$request->name;
+        $product->price=$request->price;
+        $result=$product->save();
+        if ($result) {
+        return ["message"=>"you insert data successfully"];
+
+        }
+        else{
+
+        return ["message"=>"operation failed"];
+        }
+        }
+        function update(Request $request){
+
+            $data=product::find($request->id);
+            $data->category=$request->category;
+            $data->name=$request->name;
+            $data->price=$request->price;
+            $result= $data->save();
+            if ($result) {
+                return ["message"=>"you insert data update succesfully"];
+
+                }
+                else{
+
+                return ["message"=>"operation failed"];
+
+        }
+
+        }
+        function search($name){
+         $search=product::where("name","like","%".$name."%")->get();
+         if(count($search)>0){
+            return $search;
+         }else{
+            return ["result"=>"search result not found!"];
+         }
+        }
+
+
+ function delete(Request $request,$id){
+$product=product::find($id)->delete();
+if($product){
+    return ["result"=>"you deleted data succesfully!"];
+}else{
+    return ["result"=>"your deleted operation failed!"];
+
+}
+
+        }
+
+
+
+
+
+function savedata(Request $request){
+$rules=array(
+"category"=>"required",
+"name"=>"required",
+"price"=>"required"
+
+);
+ $validation=Validator::make($request->all(),$rules);
+ if($validation->fails()){
+  return $validation->errors();
+ }else{
+    $product=new product;
+    $product->category=$request->category;
+    $product->name=$request->name;
+    $product->price=$request->price;
+    $result=$product->save();
+    if ($result) {
+    return ["message"=>"you insert data successfully"];
+
+    }
+    else{
+
+    return ["message"=>"operation failed"];
+    }
+ }
+
+}
+function upload(Request $request){
+    $file=$request->file('file')->store('apiDocs');
+    return ["result"=>$file];
+}
+
+    }
+
+
+
+
+email and password verification logics
+
+    function index(Request $request)
+    {
+        $user= User::where('email', $request->email)->first();
+        // print_r($data);
+            if (!$user || !Hash::check($request->password, $user->password)) {
+                return response([
+                    'message' => ['These credentials do not match our records.']
+                ], 404);
+            }
+
+             $token = $user->createToken('my-app-token')->plainTextToken;
+
+            $response = [
+                'user' => $user,
+                'token' => $token
+            ];
+
+             return response($response, 201);
+    }
+}
+
+
+many to many relationship logics
+public  function add_singer(){
+        $singer=new singer;
+        $singer->name="arjun singh";
+        $singer->save();
+        $songids=[1,2,3];
+        $singer->songs()->attach($songids);
+
+    }
+
+    // get songs based on singer id
+    public function getsong($id){
+        $song=singer::find($id)->songs();
+        dd($song);
+
+    }
+
+
+public function edit($id)
+{
+// $Customer=new Customer;
+// $info=$Customer->all();
+$info=Customer::find($id)->first();
+
+
+if(is_null($info)){
+return redirect()->back();
+}
+// dd($Customer->all());
+return view('editform',['data'=>$info]);
+
+
+
+simple curd operation code:-
+
+class Formcontroller extends Controller
+{
+
+// showing the formcontroller page
+public function index(){
+return view('form');
+session()->put('name', 'WscubeTech');
+}
+// this  submit the form
+public function showform(Request $request){
+
+// try {
+// $request->validate([
+//     'name' => 'required',
+//     'email' => 'required||email',
+//     'password' => 'required||confirmed',
+//     'password_confirmation' => 'required',
+//     "country"=>"required",
+//     "state"=>"required",
+//     "address"=>"required",
+//     "date"=>"required",
+//     "gender"=>"required"
+// ]);
+$customer =new Customer;
+$customer->name=$request->name;
+$customer->email=$request->email;
+$customer->gender= $request->has('gender') ? ($request->gender == "on" ? 1 : 0) : 0;
+$customer->address=$request->address;
+$customer->country=$request->country;
+$customer->state=$request->state;
+$customer->dob=$request->dob;
+$customer->pasword=$request->password;
+$customer->password_confirmation=$request->password_confirmation;
+$customer->save();
+
+
+return redirect('studentview');
+// }
+// catch (\Exception $th) {
+// return dd($th);
+// }
+
+}
+
+
+public function view(Request $request){
+    $Customer=new Customer;
+    $search=$request['search'] ?? '';
+    if($search !=''){
+     $data=Customer::where("name",'like',"%$search%")->orWhere("email",'like',"%$search%")->get();
+    }else{
+        $data=$Customer->get();
+    }
+        // $data=$Customer->all();
+
+return view('customerList',['data'=>$data,'search'=>$search]);
+
+}
+
+// delete the list
+public function delete($id){
+$Customer=new Customer;
+$Customer->find($id)->delete();
+return redirect()->back();
+
+}
+
+public function edit($id)
+{
+// $Customer=new Customer;
+// $info=$Customer->all();
+$info=Customer::find($id)->first();
+
+
+if(is_null($info)){
+return redirect()->back();
+}
+// dd($Customer->all());
+return view('editform',['data'=>$info]);
+}
+
+
+public function update(Request $request, $id)
+{
+$customer=Customer::find($id);
+$customer->name=$request->name;
+$customer->email=$request->email;
+$customer->gender= $request->gender;
+$customer->address=$request->address;
+$customer->country=$request->country;
+$customer->state=$request->state;
+$customer->dob=$request->dob;
+
+$customer->save();
+return redirect('studentview');
+
+
+
+
+}
+// move to trash only function
+public function trashonly(){
+    $customer=Customer::onlyTrashed()->get();
+    // dd($customer);
+
+return view('trashCustomer',['data'=>$customer]);
+}
+
+
+// trash the list
+public function restore($id){
+    // $Customer=new Customer;
+    $Customer=Customer::withTrashed()->find($id);
+    $Customer->restore();
+    // return redirect('studentview');
+    return redirect()->back();
+
+
+    }
+
+
+    // force delete of customer data list from trashcustomer page
+    public function Forcedelete($id){
+        $Customer=Customer::withTrashed()->find($id);
+        $Customer->Forcedelete();
+        // return redirect('studentview');
+        return redirect()->back();
+
+
+
+        }
+
+
+
+}
+ajax logics
+<script>
+    $(document).ready(function() {
+        $('#search').on('keyup', function() {
+            var query = $(this).val();
+            $.ajax({
+                url: "search",
+                type: "GET",
+                data: {
+                    "search": query
+                },
+                success: function(data) {
+                    $("#search_list").html(data);
+                }
+            });
+        });
+    })
+</script>
+
+
+ public function searching(Request $request){
+        if($request->ajax()){
+            $data=product::where("name","like","%".$request->search."%")->orWhere("model","like","%".$request->search."%")
+            ->get();
+
+        if(count( $data)>0){
+
+     $output='<table class="table">
+            <thead>
+                <tr>
+
+                    <th>Name</th>
+                    <th>Model</th>
+                </tr>
+            </thead>
+            <tbody>';
+
+                foreach ($data as $row) {
+                $output .='
+                <tr>
+
+                <td>'.$row->name.'</td>
+                <td>'.$row->model.'</td>
+
+                </tr>';
+
+              $output .='</tbody>
+                        </table>';
+                 }
+
+
+
+        }else{
+          $output .='no result';
+        }
+        return $output;
+
+
+
+        }
+
+    }
+
+
+for serach logics
+
+function search(Request $request){
+    $detail=product::where("name","like","%".$request->input('search').'%')->first();
+    //  $details=compact('detail');
+    return view('search',[
+        'details' => $detail
+    ]);
+}
+
+
+check email and password verification logics
+   function login(Request $request){
+$user=user::where(["email"=>$request->email])->first();
+if($user and Hash::check($request->password, $user->password)){
+    $request->session()->put("user",$user);
+    return redirect('productpage');
+}else{
+    return "login failed";
+}
+
+
+pagination logics
+function showstudentdetails(){
+$student=new student;
+$studentDetail= $student->simplePaginate(2);
+//    $data=compact('studentDetail');
+//    dd($data);
+return view('studentdetails',["data"=>$studentDetail]);
